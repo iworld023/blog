@@ -54,6 +54,8 @@ RUN mkdir ${APP_HOME}
 RUN apk update && apk add libpq
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN ln -s /usr/local/bin/docker-entrypoint.sh /
 RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
@@ -70,6 +72,24 @@ RUN chown -R app:app $APP_HOME
 USER app
 
 # run entrypoint.prod.sh
-ENTRYPOINT ["/home/app/web/entrypoint.prod.sh"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD [ "python", "manage.py", "runserver" ]
 
 
+
+
+#### Copied from docker store
+FROM python:3.4
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+COPY . .
+
+EXPOSE 8000
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -1,0 +1,9 @@
+.git
+.ipynb_checkpoints
+.DS_Store
+.gitignore
+README.md
+env.*
+# To prevent storing dev/temporary container data
+*.csv
+tmp
